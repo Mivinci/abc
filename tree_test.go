@@ -1,5 +1,9 @@
 package webkit
 
+import (
+	"testing"
+)
+
 // import (
 // 	"fmt"
 // 	"testing"
@@ -48,11 +52,11 @@ package webkit
 // 	// map[a:a b:b]
 // }
 
-// func BenchmarkNodeLookup(b *testing.B) {
-// 	root := node{}
-// 	root.insert([]string{":a", ":b", "c"}, nil, 0)
-// 	var ps Params
-// 	for i := 0; i < b.N; i++ {
-// 		root.lookup([]string{"a", "b", "c"}, 0, &ps)
-// 	}
-// }
+func BenchmarkNodeLookup(b *testing.B) {
+	root := node{}
+	root.insert([]string{":a", ":b", "c"}, nil, 0)
+	var ps Params
+	for i := 0; i < b.N; i++ {
+		root.lookup([]string{"a", "b", "c"}, 0, &ps)
+	}
+}

@@ -58,10 +58,11 @@ func (n *node) lookup(segments []string, height int, params *Params) *node {
 		return n
 	}
 
+	var flag uint8
 	segment := segments[height]
 
 	for _, child := range n.children {
-		var flag uint8
+		flag = 0x00
 		if segment == child.segment {
 			flag |= TypeStatic
 		}
@@ -80,8 +81,7 @@ func (n *node) lookup(segments []string, height int, params *Params) *node {
 		}
 
 		if flag != 0 {
-			res := child.lookup(segments, height+1, params)
-			if res != nil {
+			if res := child.lookup(segments, height+1, params); res != nil {
 				return res
 			}
 		}
