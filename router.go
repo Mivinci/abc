@@ -96,12 +96,11 @@ func (r *Router) Mount(name string, f func(*Router)) {
 }
 
 func (r *Router) mount(name string, plugins []Plugin, f func(*Router)) {
-	group := r.concat(r.options.group)
 	dummy := Router{
 		trees:   r.trees,
 		plugins: plugins,
 		options: Options{
-			group: group,
+			group: r.concat(name),
 		},
 	}
 	f(&dummy)
