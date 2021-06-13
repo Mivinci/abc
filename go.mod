@@ -1,3 +1,3 @@
-module github.com/mathoj/webkit
+module github.com/mivinci/webkit
 
 go 1.16
