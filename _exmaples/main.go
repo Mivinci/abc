@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/mathoj/webkit"
-	"github.com/mathoj/webkit/plugins"
+	"github.com/mivinci/webkit"
+	"github.com/mivinci/webkit/plugins"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mathoj/webkit"
+	"github.com/mivinci/webkit"
 )
 
 func Log(w io.Writer) webkit.Plugin {

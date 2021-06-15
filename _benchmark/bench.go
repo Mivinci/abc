@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mathoj/webkit"
+	"github.com/mivinci/webkit"
 )
 
 func dynamicHandler(w http.ResponseWriter, r *http.Request) {
