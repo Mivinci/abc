@@ -42,8 +42,8 @@ import (
 
 	"{{ .Repo }}/handle"
 	"{{ .Repo }}/repo"
-	"github.com/mathoj/webkit"
-	"github.com/mathoj/webkit/plugins"
+	"github.com/mivinci/webkit"
+	"github.com/mivinci/webkit/plugins"
 )
 
 func common(next http.Handler) http.Handler {
@@ -126,11 +126,9 @@ const GoMod = `module {{ .Repo }}
 
 go 1.16
 
-replace github.com/mathoj/webkit => ../../webkit-dev
-
 require (
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/mathoj/webkit v0.0.1
+	github.com/mivinci/webkit v0.0.3
 )
 `
 
