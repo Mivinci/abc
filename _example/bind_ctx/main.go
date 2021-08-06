@@ -26,5 +26,5 @@ func main() {
 		}
 		return c.JSON(http.StatusOK, a)
 	})
-	http.ListenAndServe(":8080", h)
+	h.Run(":8080")
 }

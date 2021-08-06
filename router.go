@@ -196,3 +196,11 @@ func defaultErrorHandler(c Ctx, err error) {
 		http.Error(c.Writer(), err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func (r *Router) Run(addr string) error {
+	return http.ListenAndServe(addr, r)
+}
+
+func (r *Router) RunTLS(addr, cert, key string) error {
+	return http.ListenAndServeTLS(addr, cert, key, r)
+}

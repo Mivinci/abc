@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/mivinci/webkit/v2"
 	"github.com/mivinci/webkit/v2/plugin"
@@ -19,7 +18,6 @@ func basicAuthValidator(user, passwd string) error {
 
 func main() {
 	h := webkit.New(
-		webkit.Encode(webkit.StdEncoder()),
 		webkit.Plugins(
 			plugin.BasicAuth("example", basicAuthValidator),
 		),
@@ -29,5 +27,5 @@ func main() {
 		return nil
 	})
 
-	http.ListenAndServe(":8080", h)
+	h.Run(":8080")
 }

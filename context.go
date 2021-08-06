@@ -1,8 +1,10 @@
 package webkit
 
 import (
+	"net"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -19,6 +21,7 @@ type Ctx interface {
 	Form() url.Values
 	Bind(interface{}) error
 	BindCtx(BinderCtx) error
+	RealIP() string
 	Text(int, string) error
 	Blob(int, string, []byte) error
 	JSON(int, interface{}) error
@@ -73,6 +76,23 @@ func (c *ctx) Bind(o interface{}) error {
 
 func (c *ctx) BindCtx(b BinderCtx) error {
 	return b.Bind(c)
+}
+
+func (c *ctx) RealIP() string {
+	r := c.Request()
+	xRealIP := r.Header.Get("X-Real-Ip")
+	xFFor := r.Header.Get("X-Forwarded-For")
+
+	if len(xRealIP) == 0 && len(xFFor) == 0 {
+		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+		return ip
+	}
+
+	for _, ip := range strings.Split(xFFor, ",") {
+		return strings.TrimSpace(ip)
+	}
+
+	return xRealIP
 }
 
 func (c *ctx) Blob(code int, contentType string, b []byte) error {

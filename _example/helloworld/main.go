@@ -8,9 +8,7 @@ import (
 )
 
 func main() {
-	h := webkit.New(
-		webkit.Encode(webkit.StdEncoder()),
-	)
+	h := webkit.New()
 
 	h.Get("/:id", func(c webkit.Ctx) error {
 		id, err := c.Params().Int("id")
@@ -20,5 +18,5 @@ func main() {
 		return c.Text(http.StatusOK, strconv.Itoa(id))
 	})
 
-	http.ListenAndServe(":8080", h)
+	h.Run(":8080")
 }
