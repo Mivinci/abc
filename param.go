@@ -1,63 +1,68 @@
 package webkit
 
 import (
-	"context"
 	"errors"
 	"strconv"
-	"strings"
 )
 
 var (
-	ErrNilParam = errors.New("nil params")
-	ErrNoKey    = errors.New("no key")
+	ErrNilParams = errors.New("nil params")
+	ErrNoKey     = errors.New("no such key in params")
 )
+
+type paramCtxKey struct{}
 
 type Params map[string]string
 
-type ParamsCtxKey struct{}
-
-func ParamsFromContext(ctx context.Context) Params {
-	ps, _ := ctx.Value(ParamsCtxKey{}).(Params)
-	return ps
+func (ps Params) Int(key string) (int, error) {
+	if ps == nil {
+		return 0, ErrNilParams
+	}
+	i, ok := ps[key]
+	if !ok {
+		return 0, ErrNoKey
+	}
+	return strconv.Atoi(i)
 }
 
 func (ps Params) Int64(key string) (int64, error) {
 	if ps == nil {
-		return 0, ErrNilParam
+		return 0, ErrNilParams
 	}
-	i64, ok := ps[key]
+	i, ok := ps[key]
 	if !ok {
 		return 0, ErrNoKey
 	}
-	return strconv.ParseInt(i64, 10, 64)
+	return strconv.ParseInt(i, 10, 64)
 }
 
-func (ps Params) Uint64(key string) (uint64, error) {
+func (ps Params) Float64(key string) (float64, error) {
+	return ps.float(key, 64)
+}
+
+func (ps Params) Float32(key string) (float32, error) {
+	f, err := ps.float(key, 32)
+	return float32(f), err
+}
+
+func (ps Params) float(key string, bs int) (float64, error) {
 	if ps == nil {
-		return 0, ErrNilParam
+		return 0, ErrNilParams
 	}
-	u64, ok := ps[key]
+	f, ok := ps[key]
 	if !ok {
 		return 0, ErrNoKey
 	}
-	return strconv.ParseUint(u64, 10, 64)
+	return strconv.ParseFloat(f, bs)
 }
 
 func (ps Params) String(key string) (string, error) {
 	if ps == nil {
-		return "", ErrNilParam
+		return "", ErrNilParams
 	}
 	s, ok := ps[key]
 	if !ok {
 		return "", ErrNoKey
 	}
 	return s, nil
-}
-
-func (ps Params) StringSlice(key string) ([]string, error) {
-	s, err := ps.String(key)
-	if err != nil {
-		return nil, err
-	}
-	return strings.Split(s, ","), nil
 }

@@ -1,7 +1,6 @@
 package webkit
 
 import (
-	"net/http"
 	"sort"
 )
 
@@ -22,11 +21,11 @@ func (a nodes) Less(i, j int) bool { return a[i].typ > a[j].typ }
 type node struct {
 	typ      RouteType
 	segment  string
-	handler  http.Handler
+	handler  Handler
 	children nodes
 }
 
-func (n *node) insert(segments []string, handler http.Handler, height int) {
+func (n *node) insert(segments []string, handler Handler, height int) {
 	if height == len(segments) {
 		n.handler = handler
 		return

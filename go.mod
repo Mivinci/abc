@@ -1,3 +1,1 @@
-module github.com/mivinci/webkit
-
-go 1.16
+module "github.com/mivinci/webkit/v2"
