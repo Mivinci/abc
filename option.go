@@ -1,10 +1,16 @@
 package webkit
 
+import (
+	"html/template"
+	"io/fs"
+)
+
 type Options struct {
 	group       string
 	encoder     Encoder
 	binder      Binder
 	handleError ErrorHandler
+	template    *template.Template
 	plugins     []Plugin
 }
 
@@ -19,6 +25,12 @@ func Encode(e Encoder) Option {
 func Bind(b Binder) Option {
 	return func(o *Options) {
 		o.binder = b
+	}
+}
+
+func TemplateFS(fs fs.FS, patterns ...string) Option {
+	return func(o *Options) {
+		o.template = template.Must(template.ParseFS(fs, patterns...))
 	}
 }
 

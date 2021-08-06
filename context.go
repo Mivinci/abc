@@ -22,7 +22,9 @@ type Ctx interface {
 	Bind(interface{}) error
 	BindCtx(BinderCtx) error
 	RealIP() string
+	Template(int, string, interface{}) error
 	Text(int, string) error
+	HTML(int, string) error
 	Blob(int, string, []byte) error
 	JSON(int, interface{}) error
 	JSONBlob(int, []byte) error
@@ -93,6 +95,13 @@ func (c *ctx) RealIP() string {
 	}
 
 	return xRealIP
+}
+
+func (c *ctx) Template(code int, name string, data interface{}) error {
+	if t := c.p.opts.template; t != nil {
+		return t.ExecuteTemplate(c.w, name, data)
+	}
+	return HTTPError(http.StatusInternalServerError, "no template parser provided")
 }
 
 func (c *ctx) Blob(code int, contentType string, b []byte) error {
