@@ -1,6 +1,6 @@
 # Webkit
 
-An implementation HTTP router for learning purposes.
+An implementation of HTTP router for learning purposes.
 
 
 ## Usage
