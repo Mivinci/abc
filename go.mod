@@ -1,0 +1,1 @@
+module "github.com/mivinci/webkit/v2"
