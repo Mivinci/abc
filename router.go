@@ -32,14 +32,14 @@ func (r *Router) handle(method, pattern string, handler http.Handler) {
 	r.trees[method].insert(segments, handler, 0)
 }
 
-func (r *Router) lookup(path string, root *node, ps *Params) http.Handler {
-	segments := parse(path)
-	node := root.lookup(segments, 0, ps)
-	if node != nil && node.handler != nil {
-		return node.handler
-	}
-	return nil
-}
+// func (r *Router) lookup(path string, root *node, ps *Params) http.Handler {
+// 	segments := parse(path)
+// 	node := root.lookup(segments, 0, ps)
+// 	if node != nil && node.handler != nil {
+// 		return node.handler
+// 	}
+// 	return nil
+// }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.RequestURI == "*" {
@@ -50,21 +50,29 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var ps Params
-	path := req.URL.Path
-
-	if root, ok := r.trees[req.Method]; ok {
-		if h := r.lookup(path, root, &ps); h != nil {
-			if ps != nil {
-				ctx := context.WithValue(req.Context(), ParamsCtxKey{}, ps)
-				req = req.WithContext(ctx)
-			}
-			h.ServeHTTP(w, req)
-			return
-		}
+	root, ok := r.trees[req.Method]
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
 	}
 
-	http.NotFound(w, req)
+	var params Params
+	var target node
+
+	root.lookup(parse(req.URL.Path), 0, &params, &target)
+
+	h := target.handler
+	if h == nil {
+		http.NotFound(w, req)
+		return
+	}
+
+	if params != nil {
+		ctx := context.WithValue(req.Context(), ParamsCtxKey{}, params)
+		req = req.WithContext(ctx)
+	}
+
+	h.ServeHTTP(w, req)
 }
 
 func (r *Router) compose(subs []Plugin) []Plugin {

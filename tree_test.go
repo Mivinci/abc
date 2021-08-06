@@ -56,7 +56,8 @@ func BenchmarkNodeLookup(b *testing.B) {
 	root := node{}
 	root.insert([]string{":a", ":b", "c"}, nil, 0)
 	var ps Params
+	var t node
 	for i := 0; i < b.N; i++ {
-		root.lookup([]string{"a", "b", "c"}, 0, &ps)
+		root.lookup([]string{"a", "b", "c"}, 0, &ps, &t)
 	}
 }

@@ -1,46 +1,53 @@
 package webkit
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 )
 
+type RouteType uint8
+
 const (
-	TypeDynamic uint8 = 1 << iota
-	TypeWild
-	TypeStatic
+	RouteDynamic RouteType = 1 << iota
+	RouteWild
+	RouteStatic
 )
 
-type sortedNodes []*node
+type nodes []*node
 
-func (a sortedNodes) Len() int           { return len(a) }
-func (a sortedNodes) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a sortedNodes) Less(i, j int) bool { return a[i].weight > a[j].weight }
+func (a nodes) Len() int           { return len(a) }
+func (a nodes) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a nodes) Less(i, j int) bool { return a[i].typ > a[j].typ }
 
 type node struct {
-	weight   uint8
+	typ      RouteType
 	segment  string
 	handler  http.Handler
-	children sortedNodes
+	children nodes
 }
 
 func (n *node) insert(segments []string, handler http.Handler, height int) {
-	if len(segments) == height {
+	if height == len(segments) {
 		n.handler = handler
 		return
 	}
-	segment := segments[height]
 
+	segment := segments[height]
 	child := n.find(segment)
+
 	if child == nil {
-		child = &node{weight: weight(segment), segment: segment, children: nil, handler: nil}
+		child = &node{
+			typ:     weighten(segment),
+			segment: segment,
+		}
+		// lazy init, cuz only internal nodes need allocation for children
 		if n.children == nil {
-			n.children = make(sortedNodes, 0)
+			n.children = make(nodes, 0)
 		}
 		n.children = append(n.children, child)
 		sort.Sort(n.children)
 	}
+
 	child.insert(segments, handler, height+1)
 }
 
@@ -53,55 +60,50 @@ func (n *node) find(segment string) *node {
 	return nil
 }
 
-func (n *node) lookup(segments []string, height int, params *Params) *node {
-	if len(segments) == height || (len(n.segment) != 0 && n.segment[0] == '*') {
-		return n
+func (n *node) lookup(segments []string, height int, params *Params, target *node) {
+	if height == len(segments) ||
+		(len(n.segment) != 0 && n.segment[0] == '*') {
+		*target = *n
+		return
 	}
 
-	var flag uint8
+	var route RouteType
 	segment := segments[height]
 
 	for _, child := range n.children {
-		flag = 0x00
-		if segment == child.segment {
-			flag |= TypeStatic
-		}
-		if child.segment[0] == '*' {
-			flag |= TypeWild
-		}
-		if child.segment[0] == ':' {
-			flag |= TypeDynamic
+		switch {
+		case child.segment == segment:
+			route = RouteStatic
+		case child.segment[0] == '*':
+			route = RouteWild
+		case child.segment[0] == ':':
+			route = RouteDynamic
 		}
 
-		if (flag & TypeDynamic) != 0 {
+		if route == RouteDynamic {
 			if *params == nil {
 				*params = make(Params)
 			}
 			(*params)[child.segment[1:]] = segment
 		}
 
-		if flag != 0 {
-			if res := child.lookup(segments, height+1, params); res != nil {
-				return res
+		if route != 0 {
+			if child.lookup(segments, height+1, params, target); target != nil {
+				return
 			}
 		}
 
+		route = 0
 	}
-
-	return nil
 }
 
-func (n *node) String() string {
-	return fmt.Sprintf("%d %s %v %d", n.weight, n.segment, n.handler, len(n.children))
-}
-
-func weight(segment string) uint8 {
-	switch segment[0] {
+func weighten(s string) RouteType {
+	switch s[0] {
 	case ':':
-		return 1
+		return RouteDynamic
 	case '*':
-		return 2
+		return RouteWild
 	default:
-		return 3
+		return RouteStatic
 	}
 }

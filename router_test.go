@@ -16,30 +16,6 @@ func (mockResponseWriter) Write([]byte) (n int, err error) { return }
 
 func (mockResponseWriter) WriteHeader(int) {}
 
-func BenchmarkRouterLookup(b *testing.B) {
-	var ps Params
-	h := New()
-	h.Get("/some/page/path", nil)
-	h.Get("/some/page/:id", nil)
-	root := h.trees[http.MethodGet]
-	if root == nil {
-		b.Fatal("failed to find root")
-	}
-
-	b.ReportAllocs()
-	b.Run("static", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			h.lookup("/some/page/path", root, &ps)
-		}
-	})
-
-	b.Run("dynamic", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			h.lookup("/some/page/123", root, &ps)
-		}
-	})
-}
-
 func BenchmarkParse(b *testing.B) {
 	path := "/some/page/path"
 	b.ReportAllocs()
@@ -61,6 +37,7 @@ func TestParse(t *testing.T) {
 		{"/*", []string{"*"}},
 		{"/", nil},
 		{"/a/b/c/d/e/f", []string{"a", "b", "c", "d", "e", "f"}},
+		{"/apple/banana/orange", []string{"apple", "banana", "orange"}},
 	}
 
 	for _, test := range testCases {
