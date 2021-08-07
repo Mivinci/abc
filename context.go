@@ -1,6 +1,7 @@
 package webkit
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"net/url"
@@ -16,6 +17,8 @@ type Ctx interface {
 	Request() *http.Request
 	Writer() http.ResponseWriter
 	Reset(http.ResponseWriter, *http.Request)
+	Context() context.Context
+	SetParams(string, string)
 	Params() Params
 	Query() url.Values
 	Form() url.Values
@@ -39,6 +42,8 @@ type ctx struct {
 	r *http.Request
 	w http.ResponseWriter
 	p *Router
+
+	written bool
 }
 
 func (c *ctx) Request() *http.Request {
@@ -54,9 +59,27 @@ func (c *ctx) Reset(w http.ResponseWriter, r *http.Request) {
 	c.w = w
 }
 
+func (c *ctx) Context() context.Context {
+	return c.r.Context()
+}
+
+func (c *ctx) SetParams(key, value string) {
+	ps := c.Params()
+	if _, ok := ps[key]; ok {
+		return
+	}
+	ps[key] = value
+}
+
 // Params represents parameters in the request path
 func (c *ctx) Params() Params {
-	return c.r.Context().Value(paramCtxKey{}).(Params)
+	ps, ok := c.r.Context().Value(paramCtxKey{}).(Params)
+	if ok {
+		return ps
+	}
+	ps = make(Params)
+	c.r = c.r.WithContext(context.WithValue(c.r.Context(), paramCtxKey{}, ps))
+	return ps
 }
 
 // Query is an alias of http.Request.URL.Query
@@ -99,6 +122,8 @@ func (c *ctx) RealIP() string {
 
 func (c *ctx) Template(code int, name string, data interface{}) error {
 	if t := c.p.opts.template; t != nil {
+		c.contentType("text/html")
+		c.status(code)
 		return t.ExecuteTemplate(c.w, name, data)
 	}
 	return HTTPError(http.StatusInternalServerError, "no template parser provided")
@@ -146,8 +171,13 @@ func (c *ctx) contentType(value string) {
 	}
 }
 
+// avoid warning superfluous response.WriteHeader call
 func (c *ctx) status(code int) {
+	if c.written {
+		return
+	}
 	c.w.WriteHeader(code)
+	c.written = true
 }
 
 func (c *ctx) NoContent(code int) error {

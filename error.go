@@ -9,9 +9,9 @@ import (
 type ErrorHandler func(Ctx, error)
 
 type Error struct {
-	Code    int
-	Message string
-	Values  interface{}
+	Code    int         `json:"code,omitempty"`
+	Message string      `json:"message,omitempty"`
+	Values  interface{} `json:"values"`
 }
 
 func HTTPError(code int, messages ...string) *Error {

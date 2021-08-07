@@ -91,3 +91,48 @@ func ExamplePlugin() {
 	// 11
 	// 10
 }
+
+func ExampleRouter_Use() {
+	h := New(Plugins(func(next Handler) Handler {
+		return func(c Ctx) error {
+			fmt.Println(1)
+			return next(c)
+		}
+	}))
+
+	p := func(next Handler) Handler {
+		return func(c Ctx) error {
+			fmt.Println(2)
+			return next(c)
+		}
+	}
+
+	f := func(c Ctx) error {
+		fmt.Println(3)
+		return nil
+	}
+
+	h.Group("/group", func(r *Router) {
+		r.Use(p)
+		r.Get("/", f)
+	})
+
+	h.Mount("/mount", func(r *Router) {
+		r.Use(p)
+		r.Get("/", f)
+	})
+
+	w := httptest.NewRecorder()
+	r, _ := http.NewRequest(http.MethodGet, "/group", nil)
+	h.ServeHTTP(w, r)
+
+	r, _ = http.NewRequest(http.MethodGet, "/mount", nil)
+	h.ServeHTTP(w, r)
+
+	// Output:
+	// 1
+	// 2
+	// 3
+	// 2
+	// 3
+}

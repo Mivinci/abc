@@ -8,7 +8,10 @@ import (
 	"github.com/mivinci/webkit/v2"
 )
 
-const basic = "Basic"
+const (
+	basic   = "Basic"
+	keyUser = "user_id"
+)
 
 type BasicAuthValidator func(user, passwd string) error
 
@@ -27,6 +30,7 @@ func BasicAuth(realm string, va BasicAuthValidator) webkit.Plugin {
 				i := strings.IndexByte(cred, ':')
 				if i != -1 {
 					if err := va(cred[:i], cred[i+1:]); err == nil {
+						c.SetParams(keyUser, cred[:i])
 						return next(c)
 					}
 				}

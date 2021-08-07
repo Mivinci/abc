@@ -149,6 +149,10 @@ func (r *Router) mount(group string, plugins []Plugin, f func(*Router)) {
 	f(&dummy)
 }
 
+func (r *Router) Use(ps ...Plugin) {
+	r.opts.plugins = append(r.opts.plugins, ps...)
+}
+
 func (r *Router) append(plugins []Plugin) []Plugin {
 	i, j := len(r.opts.plugins), len(plugins)
 	ps := make([]Plugin, i+j)

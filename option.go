@@ -28,9 +28,10 @@ func Bind(b Binder) Option {
 	}
 }
 
-func TemplateFS(fs fs.FS, patterns ...string) Option {
+func TemplateFS(fs fs.FS, fns template.FuncMap, patterns ...string) Option {
 	return func(o *Options) {
-		o.template = template.Must(template.ParseFS(fs, patterns...))
+		o.template = template.Must(
+			template.ParseFS(fs, patterns...)).Funcs(fns)
 	}
 }
 
