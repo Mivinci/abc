@@ -11,6 +11,8 @@ var (
 	ErrNotFound = errors.New("key does not exists")
 )
 
+const Forever = -1
+
 type Store interface {
 	Get(string) (interface{}, error)
 	Add(string, interface{}, time.Duration) error
@@ -20,7 +22,7 @@ type Store interface {
 	GetAndRemove(string) (interface{}, error)
 }
 
-func MemoryStore() Store {
+func NewMemoryStore() Store {
 	return &memoryStore{c: make(map[string]*entry)}
 }
 

@@ -8,14 +8,14 @@ import (
 
 type ErrorHandler func(Ctx, error)
 
-type Error struct {
+type HTTPError struct {
 	Code    int         `json:"code,omitempty"`
 	Message string      `json:"message,omitempty"`
 	Values  interface{} `json:"values"`
 }
 
-func HTTPError(code int, messages ...string) *Error {
-	var e Error
+func Error(code int, messages ...string) *HTTPError {
+	var e HTTPError
 	if messages != nil {
 		e.Message = strings.Join(messages, "\n")
 	}
@@ -23,22 +23,22 @@ func HTTPError(code int, messages ...string) *Error {
 	return &e
 }
 
-func (e *Error) Wrap(err error) *Error {
+func (e *HTTPError) Wrap(err error) *HTTPError {
 	if err != nil {
 		e.Message = err.Error()
 	}
 	return e
 }
 
-func (e *Error) WithValues(o interface{}) *Error {
+func (e *HTTPError) WithValues(o interface{}) *HTTPError {
 	e.Values = o
 	return e
 }
 
-func (e *Error) Error() string {
+func (e *HTTPError) Error() string {
 	return fmt.Sprintf("%d %s", e.Code, e.Message)
 }
 
-func (e *Error) Reserved() bool {
+func (e *HTTPError) Reserved() bool {
 	return e.Code >= http.StatusBadRequest && e.Code <= http.StatusNetworkAuthenticationRequired
 }

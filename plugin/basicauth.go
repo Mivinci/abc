@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	basic   = "Basic"
-	keyUser = "user_id"
+	basic           = "Basic"
+	BasicAuthKeyUID = "user_id"
 )
 
 type BasicAuthValidator func(user, passwd string) error
@@ -30,14 +30,14 @@ func BasicAuth(realm string, va BasicAuthValidator) webkit.Plugin {
 				i := strings.IndexByte(cred, ':')
 				if i != -1 {
 					if err := va(cred[:i], cred[i+1:]); err == nil {
-						c.SetParams(keyUser, cred[:i])
+						c.SetParams(BasicAuthKeyUID, cred[:i])
 						return next(c)
 					}
 				}
 			}
 
 			c.Writer().Header().Set("WWW-Authenticate", basic+" realm="+realm)
-			return webkit.HTTPError(http.StatusUnauthorized)
+			return webkit.Error(http.StatusUnauthorized)
 		}
 	}
 }

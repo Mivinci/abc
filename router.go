@@ -179,24 +179,24 @@ func chain(endpoint Handler, plugins []Plugin) Handler {
 // RFC7807
 func defaultErrorHandler(c Ctx, err error) {
 	code := http.StatusOK
-	e, ok := err.(*Error)
+	he, ok := err.(*HTTPError)
 
 	if !ok {
-		e = &Error{
+		he = &HTTPError{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
 		}
 	}
 
-	if e.Reserved() {
-		code = e.Code
+	if he.Reserved() {
+		code = he.Code
 	}
 
 	if c.Request().Method == http.MethodHead {
 		c.NoContent(code)
 	}
 
-	if err = c.JSON(code, e); err != nil {
+	if err = c.JSON(code, he); err != nil {
 		http.Error(c.Writer(), err.Error(), http.StatusInternalServerError)
 	}
 }

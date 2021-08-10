@@ -25,6 +25,8 @@ type Ctx interface {
 	Bind(interface{}) error
 	BindCtx(BinderCtx) error
 	RealIP() string
+	Cookie(string) (*http.Cookie, error)
+	SetCookie(*http.Cookie)
 	Template(int, string, interface{}) error
 	Text(int, string) error
 	HTML(int, string) error
@@ -34,6 +36,7 @@ type Ctx interface {
 	XML(int, interface{}) error
 	XMLBlob(int, []byte) error
 	NoContent(int) error
+	Redirect(int, string) error
 }
 
 var _ Ctx = (*ctx)(nil)
@@ -120,13 +123,21 @@ func (c *ctx) RealIP() string {
 	return xRealIP
 }
 
+func (c *ctx) Cookie(name string) (*http.Cookie, error) {
+	return c.r.Cookie(name)
+}
+
+func (c *ctx) SetCookie(cookie *http.Cookie) {
+	http.SetCookie(c.w, cookie)
+}
+
 func (c *ctx) Template(code int, name string, data interface{}) error {
 	if t := c.p.opts.template; t != nil {
 		c.contentType("text/html")
 		c.status(code)
 		return t.ExecuteTemplate(c.w, name, data)
 	}
-	return HTTPError(http.StatusInternalServerError, "no template parser provided")
+	return Error(http.StatusInternalServerError, "no template parser provided")
 }
 
 func (c *ctx) Blob(code int, contentType string, b []byte) error {
@@ -182,5 +193,10 @@ func (c *ctx) status(code int) {
 
 func (c *ctx) NoContent(code int) error {
 	c.w.WriteHeader(code)
+	return nil
+}
+
+func (c *ctx) Redirect(code int, url string) error {
+	http.Redirect(c.w, c.r, url, code)
 	return nil
 }
